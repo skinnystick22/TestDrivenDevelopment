@@ -74,12 +74,6 @@ public class MultiCurrencyTests
     }
 
     [Fact]
-    public void TestArrayEquals()
-    {
-        Assert.Equal(new object[] { "abc" }, new object[] { "abc" });
-    }
-
-    [Fact]
     public void TestIdentityRate()
     {
         var bank = new Bank();
