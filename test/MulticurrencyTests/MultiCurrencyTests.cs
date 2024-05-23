@@ -4,21 +4,36 @@ namespace MulticurrencyTests;
 
 public class MultiCurrencyTests
 {
+    private readonly Bank _bank;
+    private readonly Money _fiveDollars;
+    private readonly Money _tenFrancs;
+    private readonly Money _fiveFrancs;
+    private readonly Money _tenDollars;
+
+    public MultiCurrencyTests()
+    {
+        _bank = new Bank();
+        _bank.AddRate("CHF", "USD", 2);
+        _fiveDollars = Money.Dollar(5);
+        _tenDollars = Money.Dollar(10);
+        _tenFrancs = Money.Franc(10);
+        _fiveFrancs = Money.Franc(5);
+    }
+
     [Fact]
     public void TestMultiplication()
     {
-        var five = Money.Dollar(5);
-        Assert.Equal(Money.Dollar(10), five.Times(2));
-        Assert.Equal(Money.Dollar(15), five.Times(3));
+        Assert.Equal(Money.Dollar(10), _fiveDollars.Times(2));
+        Assert.Equal(Money.Dollar(15), _fiveDollars.Times(3));
     }
 
 
     [Fact]
     public void TestEquality()
     {
-        Assert.True(Money.Dollar(5).Equals(Money.Dollar(5)));
-        Assert.False(Money.Dollar(5).Equals(Money.Dollar(6)));
-        Assert.False(Money.Franc(5).Equals(Money.Dollar(5)));
+        Assert.True(_fiveDollars.Equals(_fiveDollars));
+        Assert.False(_fiveDollars.Equals(Money.Dollar(6)));
+        Assert.False(_fiveFrancs.Equals(_fiveDollars));
     }
 
     [Fact]
@@ -31,88 +46,68 @@ public class MultiCurrencyTests
     [Fact]
     public void TestPlusReturnsSum()
     {
-        var five = Money.Dollar(5);
-        var sum = (Sum)five.Plus(five);
-        Assert.Equal(five, sum.Augend);
-        Assert.Equal(five, sum.Addend);
+        var sum = (Sum)_fiveDollars.Plus(_fiveDollars);
+        Assert.Equal(_fiveDollars, sum.Augend);
+        Assert.Equal(_fiveDollars, sum.Addend);
     }
 
     [Fact]
     public void TestReduceSum()
     {
         var sum = new Sum(Money.Dollar(3), Money.Dollar(4));
-        var bank = new Bank();
-        var result = bank.Reduce(sum, "USD");
+        var result = _bank.Reduce(sum, "USD");
         Assert.Equal(Money.Dollar(7), result);
     }
 
     [Fact]
     public void TestSimpleAddition()
     {
-        var five = Money.Dollar(5);
-        var sum = five.Plus(five);
-        var bank = new Bank();
-        var reduced = bank.Reduce(sum, "USD");
-        Assert.Equal(Money.Dollar(10), reduced);
+        var sum = _fiveDollars.Plus(_fiveDollars);
+        var reduced = _bank.Reduce(sum, "USD");
+        Assert.Equal(_tenDollars, reduced);
     }
 
     [Fact]
     public void TestReduceMoney()
     {
-        var bank = new Bank();
-        var result = bank.Reduce(Money.Dollar(1), "USD");
+        var result = _bank.Reduce(Money.Dollar(1), "USD");
         Assert.Equal(Money.Dollar(1), result);
     }
 
     [Fact]
     public void TestReduceMoneyDifferentCurrency()
     {
-        var bank = new Bank();
-        bank.AddRate("CHF", "USD", 2);
-        var result = bank.Reduce(Money.Franc(2), "USD");
+        var result = _bank.Reduce(Money.Franc(2), "USD");
         Assert.Equal(Money.Dollar(1), result);
     }
 
     [Fact]
     public void TestIdentityRate()
     {
-        var bank = new Bank();
-        var rate = bank.Rate("USD", "USD");
+        var rate = _bank.Rate("USD", "USD");
         Assert.Equal(1, rate);
     }
 
     [Fact]
     public void TestMixedAddition()
     {
-        IExpression fiveDollars = Money.Dollar(5);
-        IExpression tenFrancs = Money.Franc(10);
-        var bank = new Bank();
-        bank.AddRate("CHF", "USD", 2);
-        var result = bank.Reduce(fiveDollars.Plus(tenFrancs), "USD");
-        Assert.Equal(Money.Dollar(10), result);
+        var result = _bank.Reduce(_fiveDollars.Plus(_tenFrancs), "USD");
+        Assert.Equal(_tenDollars, result);
     }
 
     [Fact]
     public void TestSumPlusMoney()
     {
-        IExpression fiveDollars = Money.Dollar(5);
-        IExpression tenFrancs = Money.Franc(10);
-        var bank = new Bank();
-        bank.AddRate("CHF", "USD", 2);
-        var sum = new Sum(fiveDollars, tenFrancs).Plus(fiveDollars);
-        var result = bank.Reduce(sum, "USD");
+        var sum = new Sum(_fiveDollars, _tenFrancs).Plus(_fiveDollars);
+        var result = _bank.Reduce(sum, "USD");
         Assert.Equal(Money.Dollar(15), result);
     }
 
     [Fact]
     public void TestSumTimes()
     {
-        IExpression fiveDollars = Money.Dollar(5);
-        IExpression tenFrancs = Money.Franc(10);
-        var bank = new Bank();
-        bank.AddRate("CHF", "USD", 2);
-        var sum = new Sum(fiveDollars, tenFrancs).Times(2);
-        var result = bank.Reduce(sum, "USD");
+        var sum = new Sum(_fiveDollars, _tenFrancs).Times(2);
+        var result = _bank.Reduce(sum, "USD");
         Assert.Equal(Money.Dollar(20), result);
     }
 }
